@@ -2,7 +2,7 @@
 
 namespace Modules\Core\Helpers;
 
-use Illuminate\Log\Writer;
+use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
 /**
@@ -12,21 +12,79 @@ use Monolog\Logger;
  *   LogHelper::write('message',['name'=>'peter'],'filename');//每天一个日志文件
  *   LogHelper::writeSingle('message',['name'=>'peter'],'filename');//单个文件
  * Author: Pecwu
- * @version 1.0
+ * @version 2.0
  * Class LogHelper
  * @package App\Helpers
  */
 class LogHelper
 {
     /**
-     * 可用的日志等级
-     * @var array
+     * Detailed debug information
      */
-    protected static $levels = ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'];
+    const DEBUG = 100;
 
-    protected static $logger = null;
+    /**
+     * Interesting events
+     *
+     * Examples: User logs in, SQL logs.
+     */
+    const INFO = 200;
 
-    protected static $logger_name = 'BI';
+    /**
+     * Uncommon events
+     */
+    const NOTICE = 250;
+
+    /**
+     * Exceptional occurrences that are not errors
+     *
+     * Examples: Use of deprecated APIs, poor use of an API,
+     * undesirable things that are not necessarily wrong.
+     */
+    const WARNING = 300;
+
+    /**
+     * Runtime errors
+     */
+    const ERROR = 400;
+
+    /**
+     * Critical conditions
+     *
+     * Example: Application component unavailable, unexpected exception.
+     */
+    const CRITICAL = 500;
+
+    /**
+     * Action must be taken immediately
+     *
+     * Example: Entire website down, database unavailable, etc.
+     * This should trigger the SMS alerts and wake you up.
+     */
+    const ALERT = 550;
+
+    /**
+     * Urgent alert.
+     */
+    const EMERGENCY = 600;
+
+
+    /**
+     * Logging levels from syslog protocol defined in RFC 5424
+     *
+     * @var array $levels Logging levels
+     */
+    protected static $levels = array(
+        self::DEBUG     => 'DEBUG',
+        self::INFO      => 'INFO',
+        self::NOTICE    => 'NOTICE',
+        self::WARNING   => 'WARNING',
+        self::ERROR     => 'ERROR',
+        self::CRITICAL  => 'CRITICAL',
+        self::ALERT     => 'ALERT',
+        self::EMERGENCY => 'EMERGENCY',
+    );
+
     /**
      * @var array $handlers 日志句柄
      */
@@ -39,26 +97,11 @@ class LogHelper
      * @param array  $context   附加内容
      * @param string $file_name 保存文件名称
      * @param string $level     日志等级
-     * @param int    $days      删除多少天以前的日志
      *                          Author: Pecwu
      */
-    public static function write($message = '', array $context = [], $file_name = 'addata', $level = 'debug', $days = 7)
+    public static function write($message = '', array $context = [], $file_name = '', $level = 'DEBUG')
     {
-        self::log($message, $context, $file_name, $level, true, $days);
-    }
-
-    /**
-     * 把日志写入到单个文件
-     *
-     * @param string $message
-     * @param array  $context
-     * @param string $file_name
-     * @param string $level
-     * Author: Pecwu
-     */
-    public static function writeSingle($message = '', array $context = [], $file_name = 'addata', $level = 'debug')
-    {
-        self::log($message, $context, $file_name, $level, false);
+        self::log($message, $context, $file_name, $level);
     }
 
     /**
@@ -68,45 +111,45 @@ class LogHelper
      * @param array  $context       附加内容
      * @param string $file_name     保存文件名称
      * @param string $level         日志等级
-     * @param bool   $useDaliyFiles 是否每天记录
-     * @param int    $days          删除多少天以前的日志
      *                              Author: Pecwu
      */
-    private static function log($message = '', array $context = [], $file_name = 'addata', $level = 'debug', $useDaliyFiles = true, $days = 7)
+    private static function log($message = '', array $context = [], $file_name = '', $level = 'DEBUG')
     {
+        $level = strtoupper($level);
         // 添加调用者信息
         $trace     = debug_backtrace(false, 2)[1];
-        $write_msg = "file: " . basename($trace['file'])
-            ." line:" . $trace['line']
-            ." message: " . $message;
-
-        //生成日志保存路径
-        $save_path = self::generatePath($file_name);
-
-        //检查错误登记
-        if (!in_array($level, self::$levels)) {
-            $level = 'debug';
+        if (empty( $file_name)) {
+            $file_name = basename($trace['file']);
         }
 
-        if (!key_exists($file_name, self::$handlers)) {
-            // 插件新的日志句柄
-            $handlers = self::makeHandle();
+        $format_message = vsprintf("file: %s line: %d message: %s", [
+            basename($trace['file']),
+            $trace['line'],
+            $message,
+        ]);
 
-            // 设置文件路径, 并且确认是否按日期分割文件
-            if ($useDaliyFiles) {
-                $handlers->useDailyFiles($save_path, $days, $level);
-            } else {
-                $handlers->useFiles($save_path, $level);
-            }
-
-            // 添加日志句柄
-            self::pushHandler($file_name, $handlers);
+        if (! self::hasHandler($file_name)) {
+            self::makeHandler($file_name);
         }
 
         // 获得日志句柄
         $logger = self::getHandler($file_name);
+
         // 记录日志
-        $logger->log($level, $write_msg, $context);
+        $logger->{'add'. ucfirst(strtolower($level))}($format_message, $context);
+    }
+
+    /**
+     * 日志句柄不存在
+     *
+     * @param $file_name
+     *
+     * @return bool
+     *
+     */
+    public static function hasHandler($file_name)
+    {
+        return isset(self::$handlers[$file_name]);
     }
 
     /**
@@ -114,8 +157,7 @@ class LogHelper
      *
      * @param $file_name
      *
-     * @return mixed
-     * Author: Pecwu
+     * @return Logger
      */
     private static function getHandler($file_name)
     {
@@ -123,38 +165,28 @@ class LogHelper
     }
 
     /**
-     * 添加日志句柄
-     *
-     * @param string $file_name
-     * @param Writer $handlers
-     * Author: Pecwu
-     */
-    private static function pushHandler($file_name, $handlers)
-    {
-        self::$handlers[$file_name] = $handlers;
-    }
-
-    /**
-     * 创建一个日志示例句柄
-     * @return Writer
-     * Author: Pecwu
-     */
-    private static function makeHandle()
-    {
-        return new Writer(new Logger(config('app.env', 'local')));
-    }
-
-
-    /**
      * 生成文件保存路径
      *
      * @param string $file_name 文件名称
      *
      * @return string 文件保存路径
-     * Author: Pecwu
      */
     private static function generatePath($file_name)
     {
-        return storage_path() . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . $file_name . '.log';
+        return storage_path('logs/') . $file_name . '-' . date('Y-m-d') . '.log';
+    }
+
+    /**
+     * make file handler
+     * @param $file_name
+     */
+    private static function makeHandler($file_name)
+    {
+        //生成日志保存路径
+        $save_path = self::generatePath($file_name);
+        $log       = new Logger(config('app.env'));
+        $handlers  = $log->pushHandler(new StreamHandler($save_path));
+
+        self::$handlers[$file_name] = $handlers;
     }
 }
