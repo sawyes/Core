@@ -1,10 +1,10 @@
 {
     "name": "nwidart/core",
-    "description": "",
+    "description": "开发平台核心模块",
     "authors": [
         {
-            "name": "Nicolas Widart",
-            "email": "n.widart@gmail.com"
+            "name": "peter",
+            "email": "7061384@126.com"
         }
     ],
     "autoload": {
