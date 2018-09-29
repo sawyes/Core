@@ -27,9 +27,11 @@ class CoreServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerFactories();
 
-        $this->commands([
-            CoreModuleAddCommand::class,
-        ]);
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                CoreModuleAddCommand::class,
+            ]);
+        }
     }
 
     /**
