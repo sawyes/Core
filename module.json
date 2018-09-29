@@ -11,7 +11,8 @@
     ],
     "aliases": {},
     "files": [
-        "start.php"
+        "start.php",
+        "Helpers/Function.php"
     ],
     "requires": []
 }
