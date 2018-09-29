@@ -33,8 +33,7 @@ class LogsqlServiceProvider extends ServiceProvider
     {
         //
         if (config('core.sql_log', false)) {
-            $db = $this->app['db'];
-            $db->listen(function ($sql) {
+            \DB::listen(function ($sql) {
                 foreach ($sql->bindings as $i => $binding) {
                     if ($binding instanceof \DateTime) {
                         $sql->bindings[$i] = $binding->format('\'Y-m-d H:i:s\'');

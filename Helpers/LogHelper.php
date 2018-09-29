@@ -185,11 +185,12 @@ class LogHelper
     {
         //生成日志保存路径
         $save_path = self::generatePath($file_name);
+
         $log       = new Logger(config('app.env'));
 
-        $streamHandler = new StreamHandler($save_path,   Logger::INFO);
-        $streamHandler->setFormatter(new LineFormatter(null, null, true, true));
-        $handlers  = $log->pushHandler($streamHandler);
+        $handlers  = $log->pushHandler(tap(new StreamHandler($save_path), function(StreamHandler $streamHandler){
+            $streamHandler->setFormatter(new LineFormatter(null, null, true, true));
+        }));
 
         self::$handlers[$file_name] = $handlers;
     }
