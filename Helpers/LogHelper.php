@@ -2,6 +2,7 @@
 
 namespace Modules\Core\Helpers;
 
+use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
@@ -99,7 +100,7 @@ class LogHelper
      * @param string $level     日志等级
      *                          Author: Pecwu
      */
-    public static function write($message = '', array $context = [], $file_name = '', $level = 'DEBUG')
+    public static function write($message = '', array $context = [], $file_name = '', $level = 'INFO')
     {
         self::log($message, $context, $file_name, $level);
     }
@@ -113,7 +114,7 @@ class LogHelper
      * @param string $level         日志等级
      *                              Author: Pecwu
      */
-    private static function log($message = '', array $context = [], $file_name = '', $level = 'DEBUG')
+    private static function log($message = '', array $context = [], $file_name = '', $level = 'INFO')
     {
         $level = strtoupper($level);
         // 添加调用者信息
@@ -185,7 +186,10 @@ class LogHelper
         //生成日志保存路径
         $save_path = self::generatePath($file_name);
         $log       = new Logger(config('app.env'));
-        $handlers  = $log->pushHandler(new StreamHandler($save_path));
+
+        $streamHandler = new StreamHandler($save_path,   Logger::INFO);
+        $streamHandler->setFormatter(new LineFormatter(null, null, true, true));
+        $handlers  = $log->pushHandler($streamHandler);
 
         self::$handlers[$file_name] = $handlers;
     }

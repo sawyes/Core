@@ -4,7 +4,6 @@ namespace Modules\Core\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
-use Modules\Core\Console\CoreModuleAddCommand;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -29,7 +28,7 @@ class CoreServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                CoreModuleAddCommand::class,
+
             ]);
         }
     }
@@ -51,21 +50,22 @@ class CoreServiceProvider extends ServiceProvider
      */
     protected function registerConfig()
     {
-        // 是否发布配置
+        // 发布一组配置，你可以随时重写配置文件内容
         $this->publishes([
-            __DIR__.'/../Config/core.php' => config_path('core.php'),
-        ], 'core.config');
+            // 源配置文件 => 发布目标配置文件
+            __DIR__.'/../Config/config.php' => config_path('core.php'),
 
-        // Modules 插件默认值
+            // 提供发布标识 php artisan vendor:publish
+        ], 'module.core.config');
+
+
+        // 合并配置文件
         $this->mergeConfigFrom(
-            __DIR__.'/../Config/config.php', 'config'
+            // 第一个参数path 提供合并配置源文件, 第二个参数为config()中的key，也就是项目config中配置文件(也可以是上一步中的 发布目标配置文件)
+            // 此处模块config.php配置将和目标core配置文件合并，core配置会重写config配置，如果目标文件不存在，则完全使用config.php
+            // 使用方法 config('core.option')
+            __DIR__.'/../Config/config.php', 'core'
         );
-
-        // 如不发布，则采用CORE模块配置
-        $this->mergeConfigFrom(
-            __DIR__.'/../Config/core.php', 'core'
-        );
-
     }
 
     /**

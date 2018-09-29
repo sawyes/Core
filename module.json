@@ -1,7 +1,7 @@
 {
     "name": "Core",
     "alias": "core",
-    "description": "",
+    "description": "Core module",
     "keywords": [],
     "active": 1,
     "order": 0,

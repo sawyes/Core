@@ -32,7 +32,7 @@ class LogsqlServiceProvider extends ServiceProvider
     public function register()
     {
         //
-        if (config('app.debug_log', false)) {
+        if (config('core.sql_log', false)) {
             $db = $this->app['db'];
             $db->listen(function ($sql) {
                 foreach ($sql->bindings as $i => $binding) {
@@ -52,7 +52,7 @@ class LogsqlServiceProvider extends ServiceProvider
 
                 $time  = (int) $sql->time / 1000;
 
-                $executeInfo  = vsprintf("connection: %s \t\t time: %s s\r\n", [
+                $executeInfo  = vsprintf("connection: %s \t\t time: %s s \r\n", [
                     $sql->connectionName,
                     $time
                 ]);
