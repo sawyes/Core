@@ -7,95 +7,87 @@ use Illuminate\Pagination\LengthAwarePaginator;
 trait ResponesTraits
 {
     /**
-     * 操作成功
+     * 操作 - 成功
      *
-     * @param       $message
-     * @param array $data
-     * @param $status
+     * @param string  $message
+     * @param array   $data
+     * @param int     $code
+     * @param int     $status
      *
-     * @return array
+     * @return \Illuminate\Http\JsonResponse
      *
      */
-    public function success($message, $data = [], $status = 200)
+    public function success($message = 'successful', $data = [], $code = 200, $status = 200)
     {
-        return [
-            'successful' => true,
-            'message'    => $message,
-            'data'       => $data,
-            'status'     => $status,
+        $data = [
+            'code'    => $code,
+            'message' => $message,
+            'data'    => $data,
         ];
+
+        return \Response::json($data, $status);
     }
 
     /**
-     * 操作失败
+     * 操作 - 失败
+     * 7xx - 自定义错误
      *
-     * @param $message
-     * @param array $data
-     * @param int $status
+     * @param string    $message
+     * @param array     $data
+     * @param int       $code       业务标识
+     * @param int       $status     HTTP HEADER STATUS
      *
-     * @return array
+     * @return \Illuminate\Http\JsonResponse
      *
      */
-    public function fail($message, $data = [], $status = 400)
+    public function fail($message = 'fail', $data = [], $code = 700, $status = 200)
     {
-        $response = [
-            'successful' => false,
-            'data' => [],
-            'message'    => $message,
-            'status'    => $status,
+        $data = [
+            'code'    => $code,
+            'message' => $message,
+            'data'    => $data,
         ];
 
-        if (! empty($data)) {
-            $response['data'] = $data;
-        }
-
-        return $response;
+        return \Response::json($data, $status);
     }
 
     /**
      * 格式化输出list
      *
      * @param $data
-     * @param $total
+     * @param int $total
+     * @param string $message
+     * @param int $code
+     * @param int $status
      *
-     * @return array
+     * @return \Illuminate\Http\JsonResponse
      *
      */
-    public function toList($data, $total = 0)
+    public function toList($data, $total = 0, $message = 'successful', $code = 200, $status = 200)
     {
         // 如果通过 paginate 获取的模型数据, 可以不传入 $total
         if ($data instanceof LengthAwarePaginator) {
-            return [
-                'successful' => true,
-                'data' => $data->toArray()['data'],
+            $data =  [
+                'code'            => $code,
+                'message'         => $message,
+                'data'            => $data->toArray()['data'],
                 'recordsFiltered' => $data->total(),
             ];
+
+            return \Response::json($data, $status);
         }
 
-        if ($total == 0) {
+        if ($total === 0) {
             $total = count($data);
         }
 
-        return [
-            'successful' => true,
-            'data' => $data,
+        $data = [
+            'code'            => $code,
+            'message'         => $message,
+            'data'            => $data,
             'recordsFiltered' => $total,
         ];
-    }
 
-    /**
-     * 返回Item
-     *
-     * @param mixed $data
-     *
-     * @return array
-     *
-     */
-    public function toItem($data)
-    {
-        return [
-            'successful' => true,
-            'data' => $data
-        ];
+        return \Response::json($data, $status);
     }
 }
