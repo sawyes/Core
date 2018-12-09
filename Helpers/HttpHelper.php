@@ -38,18 +38,12 @@ class HttpHelper
             ];
         }
 
-        try {
-            $response = $this->client->post($url, [
-                'headers' => $headers,
-                'body'=>$body
-            ]);
+        $response = $this->client->post($url, [
+            'headers' => $headers,
+            'body'=>$body
+        ]);
 
-            return [$response->getStatusCode(), $response->getBody()->getContents()];
-
-        } catch (RequestException  $e) {
-
-            return [$e->getResponse()->getStatusCode(), $e->getResponse()->getBody()->getContents()];
-        }
+        return [$response->getStatusCode(), $response->getBody()->getContents()];
     }
 
     public function download($url, $output)
