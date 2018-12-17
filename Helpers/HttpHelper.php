@@ -2,10 +2,8 @@
 
 namespace Modules\Core\Helpers;
 
-use function foo\func;
 use \GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use Predis\Response\ResponseInterface;
 
 /**
  * @doc https://guzzle-cn.readthedocs.io/zh_CN/latest/
