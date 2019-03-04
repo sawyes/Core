@@ -44,6 +44,24 @@ class HttpHelper
         return [$response->getStatusCode(), $response->getBody()->getContents()];
     }
 
+    public function multipart($url, $body)
+    {
+
+        // [
+        //     'multipart' => [
+        //         [
+        //             'name'     => 'xmlstring',
+        //             'contents' => $data
+        //         ],
+        //     ]
+        // ]
+        $response = $this->client->post($url, [
+            'multipart' => $body
+        ]);
+
+        return [$response->getStatusCode(), $response->getBody()->getContents()];
+    }
+
     public function download($url, $output)
     {
         $respone = $this->client->get($url);
@@ -84,4 +102,11 @@ class HttpHelper
 
         return $promise;
     }
+
+    public function post($url, $data)
+    {
+        return $this->client->request('POST', $url, $data);
+    }
+
+
 }
