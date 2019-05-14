@@ -3,6 +3,7 @@
 * log sql service provider
 * Helpers/Function.php
 * ResponesTraits
+* notify dingding
 
 
 #### log sql service provider
@@ -34,4 +35,16 @@ CORE_SQL_LOG=true
 
 规范控制异步返回数据
 
+#### dingding
 
+add alias
+
+```
+'Dingding' => Modules\Core\Facades\Dingding::class,
+```
+
+sendmessage
+
+```
+\Dingding::text('webhook_url', 'notfyt message')
+```
