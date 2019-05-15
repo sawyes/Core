@@ -54,6 +54,7 @@ class CoreServiceProvider extends ServiceProvider
         $this->publishes([
             // 源配置文件 => 发布目标配置文件
             __DIR__.'/../Config/config.php' => config_path('core.php'),
+            __DIR__.'/../Config/dingding.php' => config_path('dingding.php'),
 
             // 提供发布标识 php artisan vendor:publish
         ], 'module.core.config');
@@ -65,6 +66,11 @@ class CoreServiceProvider extends ServiceProvider
             // 此处模块config.php配置将和目标core配置文件合并，core配置会重写config配置，如果目标文件不存在，则完全使用config.php
             // 使用方法 config('core.option')
             __DIR__.'/../Config/config.php', 'core'
+        );
+
+        // 合并配置文件
+        $this->mergeConfigFrom(
+            __DIR__.'/../Config/dingding.php', 'dingding'
         );
     }
 

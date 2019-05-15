@@ -46,5 +46,8 @@ add alias
 sendmessage
 
 ```
-\Dingding::text('webhook_url', 'notfyt message')
+\Dingding::text('notfyt message')
+
+\Dingding::webhook('default')->text('happy now?')
+ 
 ```

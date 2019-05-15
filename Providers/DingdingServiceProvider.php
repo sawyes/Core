@@ -23,7 +23,8 @@ class DingdingServiceProvider extends ServiceProvider
     {
         // dingding
         $this->app->singleton('notify.dingding', function ($app) {
-            return new DingdingHelper();
+
+            return new DingdingHelper(config('dingding'));
         });
     }
 
