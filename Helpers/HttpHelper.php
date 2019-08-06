@@ -64,15 +64,15 @@ class HttpHelper
 
     public function download($url, $output)
     {
-        $respone = $this->client->get($url);
+        $response = $this->client->get($url);
 
         $fp=fopen($output,"w");
 
-        fputs($fp, $respone->getBody());
+        fputs($fp, $response->getBody());
 
         fclose($fp);
 
-        return true;
+        return [$response->getStatusCode(), $response->getBody()->getContents()];
     }
 
     /**
