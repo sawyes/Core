@@ -4,6 +4,7 @@ namespace Modules\Core\Helpers;
 
 use \GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Response;
 
 /**
  * @doc https://guzzle-cn.readthedocs.io/zh_CN/latest/
@@ -14,7 +15,8 @@ class HttpHelper
      * @var \GuzzleHttp\Client
      */
     protected $client;
-
+    private $name;
+    private $password;
 
 
     /**
@@ -22,8 +24,10 @@ class HttpHelper
      *
      * @param Client $client
      */
-    public function __construct()
+    public function __construct($username='', $password='')
     {
+        $this->username = $username;
+        $this->password = $password;
         $this->client = new Client();
     }
 
@@ -42,6 +46,15 @@ class HttpHelper
         ]);
 
         return [$response->getStatusCode(), $response->getBody()->getContents()];
+    }
+
+    public function digest($uri, $body){
+        return $this->client->requestAsync('POST' ,$uri , [
+            'auth' => [$this->username, $this->password, 'digest'],
+            'body' => $body
+        ])->then(function(Response $response){
+            return [$response->getStatusCode(), $response->getBody()->getContents()];
+        })->wait();
     }
 
     public function multipart($url, $body)
